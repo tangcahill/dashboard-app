@@ -1,96 +1,215 @@
 ﻿@page "/chores"
+@using MudBlazor
+@inject NavigationManager NavigationManager
 @inject ChoreService ChoreService
 
 <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-4">
-    <MudText Typo="Typo.h4" GutterBottom>Today's Chores</MudText>
+    <MudStack Row AlignItems="AlignItems.Center">
+        <MudText Typo="Typo.h4">Chores Manager</MudText>
+        <MudSpacer />
+        <MudIconButton Icon="@Icons.Material.Filled.Home"
+                       Color="Color.Primary"
+                       OnClick='@(() => NavigationManager.NavigateTo("/"))' />
+    </MudStack>
 
-    <MudGrid>
-        @foreach (var c in ChoreService.RecurringChores)
+    <MudStack Spacing="2" Class="my-4">
+        <MudButton Variant="Variant.Outlined"
+                   FullWidth="true"
+                   StartIcon="@Icons.Material.Filled.Checklist"
+                   OnClick="() => ShowView(ViewType.Active)">
+            Today's Chores
+        </MudButton>
+        <MudButton Variant="Variant.Outlined"
+                   FullWidth="true"
+                   StartIcon="@Icons.Material.Filled.AddBox"
+                   OnClick="() => ShowView(ViewType.Add)">
+            Add Chore
+        </MudButton>
+        <MudButton Variant="Variant.Outlined"
+                   FullWidth="true"
+                   StartIcon="@Icons.Material.Filled.List"
+                   OnClick="() => ShowView(ViewType.List)">
+            List Chores
+        </MudButton>
+    </MudStack>
+
+    @if (currentView == ViewType.Active)
+    {
+        @if (!RecurringChores.Any() && !OneOffChores.Any())
         {
-            <MudItem xs="12" sm="6" @key="c.Id">
-                <MudCard Elevation="1" Class="pa-2">
-                    <MudStack Direction="Row" AlignItems="AlignItems.Center" Spacing="2">
-                        <MudCheckBox T="bool"
-                                     @onchange="@(async (ChangeEventArgs e) => await OnRecurringChecked(c.Id))" />
-                        <MudText>@c.Description</MudText>
-                    </MudStack>
-                </MudCard>
-            </MudItem>
+            <MudText Typo="Typo.h6" Align="Align.Center">No chores to do!</MudText>
         }
-        @foreach (var o in ChoreService.OneOffChores)
+        else
         {
-            <MudItem xs="12" sm="6" @key="o.Id">
-                <MudCard Elevation="1" Class="pa-2">
-                    <MudStack Direction="Row" AlignItems="AlignItems.Center" Spacing="2">
-                        <MudCheckBox T="bool"
-                                     @onchange="@(async (ChangeEventArgs e) => await OnOneOffChecked(o.Id))" />
-                        <MudText>@o.Description</MudText>
-                    </MudStack>
-                </MudCard>
-            </MudItem>
+            <MudGrid Spacing="2">
+                @foreach (var c in RecurringChores)
+                {
+                    <MudItem xs="12" sm="6">
+                        <MudCard Class="pa-2 mb-2">
+                            <MudStack Row AlignItems="AlignItems.Center" Spacing="1">
+                                <MudText Typo="Typo.h6"
+                                         Class="flex-grow-1 clickable"
+                                         OnClick="() => CompleteRecurring(c.Id)">
+                                    @c.Description
+                                </MudText>
+                                <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                               Color="Color.Info"
+                                               OnClick="() => UpdateRecurring(c.Id)" />
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                               Color="Color.Error"
+                                               OnClick="() => DeleteRecurring(c.Id)" />
+                            </MudStack>
+                        </MudCard>
+                    </MudItem>
+                }
+                @foreach (var o in OneOffChores)
+                {
+                    <MudItem xs="12" sm="6">
+                        <MudCard Class="pa-2 mb-2">
+                            <MudStack Row AlignItems="AlignItems.Center" Spacing="1">
+                                <MudText Typo="Typo.h6"
+                                         Class="flex-grow-1 clickable"
+                                         OnClick="() => CompleteOneOff(o.Id)">
+                                    @o.Description
+                                </MudText>
+                                <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                               Color="Color.Info"
+                                               OnClick="() => UpdateOneOff(o.Id)" />
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                               Color="Color.Error"
+                                               OnClick="() => DeleteOneOff(o.Id)" />
+                            </MudStack>
+                        </MudCard>
+                    </MudItem>
+                }
+            </MudGrid>
         }
-    </MudGrid>
+    }
+    else if (currentView == ViewType.Add)
+    {
+        <MudDivider Class="my-4" />
 
-    <MudDivider Class="my-4" />
+        <MudPaper Class="pa-4" Elevation="0">
+            <MudText Typo="Typo.h6">Add Recurring</MudText>
+            <MudTextField T="string"
+                          @bind-Value="newRecurring.Description"
+                          Label="Description"
+                          FullWidth="true" />
+            <MudStack Row AlignItems="AlignItems.Center"
+                      Spacing="2"
+                      Class="mt-2 flex-wrap">
+                @foreach (var d in Enum.GetValues<DayOfWeek>())
+                {
+                    <MudCheckBox T="bool"
+                                 @bind-Value="daySel[d]"
+                                 Label="@d.ToString()[..3]" />
+                }
+            </MudStack>
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       OnClick="AddRecurring"
+                       Class="mt-2">
+                Add Recurring
+            </MudButton>
+        </MudPaper>
 
-    <MudPaper Class="pa-4" Elevation="0">
-        <MudText Typo="Typo.h6">Add Recurring</MudText>
-        <MudTextField @bind-Value="newRecurring.Description"
-                      Label="Description" FullWidth="true" />
-        <MudStack Direction="Row" Class="my-2" Wrap="Wrap.Wrap">
-            @foreach (var d in Enum.GetValues<DayOfWeek>())
+        <MudPaper Class="pa-4 mt-4" Elevation="0">
+            <MudText Typo="Typo.h6">Add One-Off</MudText>
+            <MudTextField T="string"
+                          @bind-Value="newOneOff.Description"
+                          Label="Description"
+                          FullWidth="true" />
+            <MudDatePicker T="DateTime?"
+                           @bind-Date="newOneOff.Date"
+                           Format="dd/MM/yyyy"
+                           Class="mt-2" />
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       OnClick="AddOneOff"
+                       Class="mt-2">
+                Add One-Off
+            </MudButton>
+        </MudPaper>
+    }
+    else if (currentView == ViewType.List)
+    {
+        <MudDivider Class="my-4" />
+
+        <MudText Typo="Typo.h6">Recurring Chore Definitions</MudText>
+        <MudList T="RecurringChore" Dense="true">
+            @foreach (var c in RecurringChores)
             {
-                <MudCheckBox T="bool"
-                             @bind-Value="daySel[d]"
-                             Label="@d.ToString()[..3]" />
+                <MudListItem T="RecurringChore" Value="c" Text="@c.Description">
+                    <MudSpacer />
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                   OnClick="() => UpdateRecurring(c.Id)" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                   OnClick="() => DeleteRecurring(c.Id)" />
+                </MudListItem>
             }
-        </MudStack>
-        <MudButton Variant="Variant.Filled"
-                   Color="Color.Primary"
-                   OnClick="AddRecurring">
-            Add Recurring
-        </MudButton>
-    </MudPaper>
+        </MudList>
 
-    <MudPaper Class="pa-4 mt-4" Elevation="0">
-        <MudText Typo="Typo.h6">Add One-Off</MudText>
-        <MudTextField @bind-Value="newOneOff.Description"
-                      Label="Description" FullWidth="true" />
-        <MudDatePicker T="DateTime?"
-                @bind-Date="newOneOff.Date"
-                Format="dd/MM/yyyy" />
-        <MudButton Variant="Variant.Filled"
-                   Color="Color.Primary"
-                   OnClick="AddOneOff">
-            Add One-Off
-        </MudButton>
-    </MudPaper>
+        <MudText Typo="Typo.h6" Class="mt-4">One-Off Chore Definitions</MudText>
+        <MudList T="OneOffChore" Dense="true">
+            @foreach (var o in OneOffChores)
+            {
+                <MudListItem T="OneOffChore" Value="o" Text="@($"{o.Description} ({o.Date:dd/MM/yyyy})")">
+                    <MudSpacer />
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                   OnClick="() => UpdateOneOff(o.Id)" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                   OnClick="() => DeleteOneOff(o.Id)" />
+                </MudListItem>
+            }
+        </MudList>
+    }
 </MudContainer>
 
 @code {
+    enum ViewType { Active, Add, List }
+    private ViewType currentView = ViewType.Active;
+
+    private List<RecurringChore> RecurringChores => ChoreService.RecurringChores;
+    private List<OneOffChore> OneOffChores => ChoreService.OneOffChores;
+
     private RecurringChore newRecurring = new();
     private OneOffChore newOneOff = new() { Date = DateTime.Today };
     private Dictionary<DayOfWeek, bool> daySel =
-        Enum.GetValues<DayOfWeek>()
-            .Cast<DayOfWeek>()
-            .ToDictionary(d => d, _ => false);
+        Enum.GetValues<DayOfWeek>().ToDictionary(d => d, _ => false);
 
     protected override async Task OnInitializedAsync()
+        => await ChoreService.LoadTodayAsync();
+
+    void ShowView(ViewType view) => currentView = view;
+    async Task CompleteRecurring(Guid id) => await OnRecurringChecked(id);
+    async Task CompleteOneOff(Guid id) => await OnOneOffChecked(id);
+
+    void UpdateRecurring(Guid id) { /* TODO: open edit UI */ }
+    void UpdateOneOff(Guid id) { /* TODO: open edit UI */ }
+
+    async Task DeleteRecurring(Guid id)
     {
+        await ChoreService.DeleteRecurringAsync(id);
         await ChoreService.LoadTodayAsync();
+        currentView = ViewType.Active;
+    }
+
+    async Task DeleteOneOff(Guid id)
+    {
+        await ChoreService.DeleteOneOffAsync(id);
+        await ChoreService.LoadTodayAsync();
+        currentView = ViewType.Active;
     }
 
     private async Task OnRecurringChecked(Guid id)
     {
-        // Optimistically remove from UI
-        ChoreService.RecurringChores.RemoveAll(c => c.Id == id);
+        RecurringChores.RemoveAll(c => c.Id == id);
         await ChoreService.CompleteRecurringAsync(id);
     }
 
     private async Task OnOneOffChecked(Guid id)
     {
-        // Optimistically remove from UI
-        ChoreService.OneOffChores.RemoveAll(o => o.Id == id);
+        OneOffChores.RemoveAll(o => o.Id == id);
         await ChoreService.CompleteOneOffAsync(id);
     }
 
@@ -106,13 +225,8 @@
 
         await ChoreService.AddRecurringAsync(newRecurring);
         newRecurring = new();
-
-        // reset day checkboxes
         daySel = Enum.GetValues<DayOfWeek>()
-                     .Cast<DayOfWeek>()
                      .ToDictionary(d => d, _ => false);
-
-        // refresh list
         await ChoreService.LoadTodayAsync();
     }
 
@@ -120,8 +234,6 @@
     {
         await ChoreService.AddOneOffAsync(newOneOff);
         newOneOff = new() { Date = DateTime.Today };
-
-        // refresh list
         await ChoreService.LoadTodayAsync();
     }
 }

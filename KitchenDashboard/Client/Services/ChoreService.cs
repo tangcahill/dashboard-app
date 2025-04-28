@@ -30,6 +30,12 @@ namespace KitchenDashboard.Client.Services
             OneOffChores.RemoveAll(c => c.Id == id);
         }
 
+        public Task DeleteRecurringAsync(Guid id)
+    => _http.DeleteAsync($"api/chores/recurring/{id}");
+
+        public Task DeleteOneOffAsync(Guid id)
+            => _http.DeleteAsync($"api/chores/oneoff/{id}");
+
         public Task AddRecurringAsync(RecurringChore chore)
             => _http.PostAsJsonAsync("api/chores/recurring", chore);
         public Task AddOneOffAsync(OneOffChore chore)
