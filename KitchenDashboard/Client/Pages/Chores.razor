@@ -9,27 +9,26 @@
         <MudSpacer />
         <MudIconButton Icon="@Icons.Material.Filled.Home"
                        Color="Color.Primary"
-                       OnClick='@(() => NavigationManager.NavigateTo("/"))' />
+                       OnClick='() => NavigationManager.NavigateTo("/")' />
     </MudStack>
 
-    <MudStack Spacing="2" Class="my-4">
+    <MudStack Row AlignItems="AlignItems.Stretch" Spacing="2" Class="my-4">
         <MudButton Variant="Variant.Outlined"
                    FullWidth="true"
-                   StartIcon="@Icons.Material.Filled.Checklist"
                    OnClick="() => ShowView(ViewType.Active)">
             Today's Chores
         </MudButton>
         <MudButton Variant="Variant.Outlined"
                    FullWidth="true"
-                   StartIcon="@Icons.Material.Filled.AddBox"
-                   OnClick="() => ShowView(ViewType.Add)">
-            Add Chore
-        </MudButton>
-        <MudButton Variant="Variant.Outlined"
-                   FullWidth="true"
-                   StartIcon="@Icons.Material.Filled.List"
                    OnClick="() => ShowView(ViewType.List)">
-            List Chores
+            All Chores
+        </MudButton>
+        <MudButton Variant="Variant.Filled"
+                   FullWidth="true"
+                   StartIcon="@Icons.Material.Filled.AddBox"
+                   OnClick="() => ShowView(ViewType.Add)"
+                   Style="height:60px">
+            Add Chore
         </MudButton>
     </MudStack>
 
@@ -45,10 +44,9 @@
                 @foreach (var c in RecurringChores)
                 {
                     <MudItem xs="12" sm="6">
-                        <MudCard Class="pa-2 mb-2">
+                        <MudCard Class="pa-2">
                             <MudStack Row AlignItems="AlignItems.Center" Spacing="1">
-                                <MudText Typo="Typo.h6"
-                                         Class="flex-grow-1 clickable"
+                                <MudText Class="flex-grow-1 clickable"
                                          OnClick="() => CompleteRecurring(c.Id)">
                                     @c.Description
                                 </MudText>
@@ -65,10 +63,9 @@
                 @foreach (var o in OneOffChores)
                 {
                     <MudItem xs="12" sm="6">
-                        <MudCard Class="pa-2 mb-2">
+                        <MudCard Class="pa-2">
                             <MudStack Row AlignItems="AlignItems.Center" Spacing="1">
-                                <MudText Typo="Typo.h6"
-                                         Class="flex-grow-1 clickable"
+                                <MudText Class="flex-grow-1 clickable"
                                          OnClick="() => CompleteOneOff(o.Id)">
                                     @o.Description
                                 </MudText>
@@ -88,7 +85,6 @@
     else if (currentView == ViewType.Add)
     {
         <MudDivider Class="my-4" />
-
         <MudPaper Class="pa-4" Elevation="0">
             <MudText Typo="Typo.h6">Add Recurring</MudText>
             <MudTextField T="string"
@@ -101,7 +97,7 @@
                 @foreach (var d in Enum.GetValues<DayOfWeek>())
                 {
                     <MudCheckBox T="bool"
-                                 @bind-Value="daySel[d]"
+                                 @bind-Checked="daySel[d]"
                                  Label="@d.ToString()[..3]" />
                 }
             </MudStack>
@@ -109,7 +105,7 @@
                        Color="Color.Primary"
                        OnClick="AddRecurring"
                        Class="mt-2">
-                Add Recurring
+                @((newRecurring.Id == Guid.Empty) ? "Add Recurring" : "Save Changes")
             </MudButton>
         </MudPaper>
 
@@ -127,7 +123,7 @@
                        Color="Color.Primary"
                        OnClick="AddOneOff"
                        Class="mt-2">
-                Add One-Off
+                @((newOneOff.Id == Guid.Empty) ? "Add One-Off" : "Save Changes")
             </MudButton>
         </MudPaper>
     }
@@ -135,29 +131,33 @@
     {
         <MudDivider Class="my-4" />
 
-        <MudText Typo="Typo.h6">Recurring Chore Definitions</MudText>
+        <MudText Typo="Typo.h6">All Recurring Chores</MudText>
         <MudList T="RecurringChore" Dense="true">
             @foreach (var c in RecurringChores)
             {
                 <MudListItem T="RecurringChore" Value="c" Text="@c.Description">
                     <MudSpacer />
                     <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                   Color="Color.Info"
                                    OnClick="() => UpdateRecurring(c.Id)" />
                     <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                   Color="Color.Error"
                                    OnClick="() => DeleteRecurring(c.Id)" />
                 </MudListItem>
             }
         </MudList>
 
-        <MudText Typo="Typo.h6" Class="mt-4">One-Off Chore Definitions</MudText>
+        <MudText Typo="Typo.h6" Class="mt-4">All One-Off Chores</MudText>
         <MudList T="OneOffChore" Dense="true">
             @foreach (var o in OneOffChores)
             {
                 <MudListItem T="OneOffChore" Value="o" Text="@($"{o.Description} ({o.Date:dd/MM/yyyy})")">
                     <MudSpacer />
                     <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                   Color="Color.Info"
                                    OnClick="() => UpdateOneOff(o.Id)" />
                     <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                   Color="Color.Error"
                                    OnClick="() => DeleteOneOff(o.Id)" />
                 </MudListItem>
             }
@@ -170,35 +170,80 @@
     private ViewType currentView = ViewType.Active;
 
     private List<RecurringChore> RecurringChores => ChoreService.RecurringChores;
-    private List<OneOffChore> OneOffChores => ChoreService.OneOffChores;
+    private List<OneOffChore> OneOffChores     => ChoreService.OneOffChores;
 
-    private RecurringChore newRecurring = new();
-    private OneOffChore newOneOff = new() { Date = DateTime.Today };
-    private Dictionary<DayOfWeek, bool> daySel =
-        Enum.GetValues<DayOfWeek>().ToDictionary(d => d, _ => false);
+    private RecurringChore newRecurring = new() { Id = Guid.Empty };
+    private OneOffChore    newOneOff    = new() { Id = Guid.Empty, Date = DateTime.Today };
+    private Dictionary<DayOfWeek,bool> daySel =
+        Enum.GetValues<DayOfWeek>().Cast<DayOfWeek>().ToDictionary(d => d, _ => false);
 
     protected override async Task OnInitializedAsync()
-        => await ChoreService.LoadTodayAsync();
+    {
+        await ChoreService.LoadTodayAsync();
+    }
 
-    void ShowView(ViewType view) => currentView = view;
-    async Task CompleteRecurring(Guid id) => await OnRecurringChecked(id);
-    async Task CompleteOneOff(Guid id) => await OnOneOffChecked(id);
+    void ShowView(ViewType view)
+    {
+        currentView = view;
+    }
 
-    void UpdateRecurring(Guid id) { /* TODO: open edit UI */ }
-    void UpdateOneOff(Guid id) { /* TODO: open edit UI */ }
+    async Task CompleteRecurring(Guid id)
+    {
+        await OnRecurringChecked(id);
+    }
+
+    async Task CompleteOneOff(Guid id)
+    {
+        await OnOneOffChecked(id);
+    }
+
+    void UpdateRecurring(Guid id)
+    {
+        var c = RecurringChores.First(x => x.Id == id);
+        newRecurring = new RecurringChore
+        {
+            Id          = c.Id,
+            Description = c.Description,
+            Monday      = c.Monday,
+            Tuesday     = c.Tuesday,
+            Wednesday   = c.Wednesday,
+            Thursday    = c.Thursday,
+            Friday      = c.Friday,
+            Saturday    = c.Saturday,
+            Sunday      = c.Sunday
+        };
+        daySel = Enum.GetValues<DayOfWeek>()
+                     .Cast<DayOfWeek>()
+                     .ToDictionary(d => d, d => c.GetType()
+                                               .GetProperty(d.ToString())!
+                                               .GetValue(c) as bool? == true);
+        ShowView(ViewType.Add);
+    }
+
+    void UpdateOneOff(Guid id)
+    {
+        var o = OneOffChores.First(x => x.Id == id);
+        newOneOff = new OneOffChore
+        {
+            Id          = o.Id,
+            Description = o.Description,
+            Date        = o.Date
+        };
+        ShowView(ViewType.Add);
+    }
 
     async Task DeleteRecurring(Guid id)
     {
         await ChoreService.DeleteRecurringAsync(id);
         await ChoreService.LoadTodayAsync();
-        currentView = ViewType.Active;
+        ShowView(ViewType.Active);
     }
 
     async Task DeleteOneOff(Guid id)
     {
         await ChoreService.DeleteOneOffAsync(id);
         await ChoreService.LoadTodayAsync();
-        currentView = ViewType.Active;
+        ShowView(ViewType.Active);
     }
 
     private async Task OnRecurringChecked(Guid id)
@@ -215,25 +260,36 @@
 
     private async Task AddRecurring()
     {
-        newRecurring.Monday = daySel[DayOfWeek.Monday];
-        newRecurring.Tuesday = daySel[DayOfWeek.Tuesday];
+        newRecurring.Monday    = daySel[DayOfWeek.Monday];
+        newRecurring.Tuesday   = daySel[DayOfWeek.Tuesday];
         newRecurring.Wednesday = daySel[DayOfWeek.Wednesday];
-        newRecurring.Thursday = daySel[DayOfWeek.Thursday];
-        newRecurring.Friday = daySel[DayOfWeek.Friday];
-        newRecurring.Saturday = daySel[DayOfWeek.Saturday];
-        newRecurring.Sunday = daySel[DayOfWeek.Sunday];
+        newRecurring.Thursday  = daySel[DayOfWeek.Thursday];
+        newRecurring.Friday    = daySel[DayOfWeek.Friday];
+        newRecurring.Saturday  = daySel[DayOfWeek.Saturday];
+        newRecurring.Sunday    = daySel[DayOfWeek.Sunday];
 
-        await ChoreService.AddRecurringAsync(newRecurring);
-        newRecurring = new();
-        daySel = Enum.GetValues<DayOfWeek>()
-                     .ToDictionary(d => d, _ => false);
+        if (newRecurring.Id == Guid.Empty)
+            await ChoreService.AddRecurringAsync(newRecurring);
+        else
+            await ChoreService.UpdateRecurringAsync(newRecurring);
+
+        newRecurring = new() { Id = Guid.Empty };
+        daySel = Enum.GetValues<DayOfWeek>().Cast<DayOfWeek>().ToDictionary(d => d, _ => false);
+
         await ChoreService.LoadTodayAsync();
+        ShowView(ViewType.Active);
     }
 
     private async Task AddOneOff()
     {
-        await ChoreService.AddOneOffAsync(newOneOff);
-        newOneOff = new() { Date = DateTime.Today };
+        if (newOneOff.Id == Guid.Empty)
+            await ChoreService.AddOneOffAsync(newOneOff);
+        else
+            await ChoreService.UpdateOneOffAsync(newOneOff);
+
+        newOneOff = new() { Id = Guid.Empty, Date = DateTime.Today };
+
         await ChoreService.LoadTodayAsync();
+        ShowView(ViewType.Active);
     }
 }
