@@ -1,0 +1,15 @@
+services:
+  server:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    build:
+      context: .
+      dockerfile: KitchenDashboard/Server/Dockerfile
+    container_name: kitchendashboard_server
+    restart: unless-stopped
+    ports:
+      - "80:8080"
+    volumes:
+      - ./KitchenDashboard/Server/chores.db:/app/chores.db
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro

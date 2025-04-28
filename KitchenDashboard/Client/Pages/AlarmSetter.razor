@@ -1,0 +1,40 @@
+﻿@page "/alarms"
+@inject HttpClient Http
+@using MudBlazor
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-6">
+    <MudCard Elevation="3" Class="pa-6">
+        <MudText Typo="Typo.h5" Class="mb-4">Set a Reminder</MudText>
+        <MudForm OnValidSubmit="SetAlarm">
+            <MudStack Spacing="3">
+                <MudDatePicker @bind-Date="_selectedDate" Label="Choose date" />
+                <MudTimePicker @bind-Time="_selectedTime" Label="Choose time" />
+                <MudTextField @bind-Value="_alarm.Message" Label="Reminder text" />
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Type="Submit">
+                    Set Alarm
+                </MudButton>
+            </MudStack>
+        </MudForm>
+    </MudCard>
+</MudContainer>
+
+@code {
+    private AlarmDto _alarm = new();
+    private DateTime? _selectedDate;
+    private TimeSpan? _selectedTime;
+
+    private async Task SetAlarm()
+    {
+        if (_selectedDate.HasValue && _selectedTime.HasValue)
+        {
+            _alarm.Due = _selectedDate.Value.Date + _selectedTime.Value;
+            await Http.PostAsJsonAsync("api/alarms", _alarm);
+        }
+    }
+
+    public class AlarmDto
+    {
+        public DateTime Due { get; set; }
+        public string Message { get; set; }
+    }
+}

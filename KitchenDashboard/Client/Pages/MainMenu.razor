@@ -1,0 +1,30 @@
+﻿@page "/"
+@using MudBlazor
+
+<MudContainer MaxWidth="MaxWidth.Small" Class="mt-2">
+    <!-- Title sits just below the AppBar -->
+    <MudText Typo="Typo.h4" Class="mb-4" Align="Align.Center">
+        Dashboard
+    </MudText>
+
+    <!-- Extra space above buttons -->
+    <MudStack Spacing="3" Class="mt-4">
+        <MudButton Href="chores"
+                   Variant="Variant.Outlined"
+                   Color="Color.Primary"
+                   FullWidth="true"
+                   StartIcon="@Icons.Material.Filled.List"
+                   Class="py-4">
+            Chores Manager 🧹
+        </MudButton>
+
+        <MudButton Href="alarms"
+                   Variant="Variant.Outlined"
+                   Color="Color.Primary"
+                   FullWidth="true"
+                   StartIcon="@Icons.Material.Filled.Alarm"
+                   Class="py-4">
+            Alarm Manager ⏱️
+        </MudButton>
+    </MudStack>
+</MudContainer>

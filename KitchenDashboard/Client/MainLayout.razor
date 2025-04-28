@@ -1,0 +1,61 @@
+﻿@inherits LayoutComponentBase
+@using KitchenDashboard.Shared
+@using MudBlazor
+@using MudBlazor.ThemeManager
+@using KitchenDashboard.Client.Shared   // adjust if your namespace differs
+@inject NavigationManager NavigationManager
+
+<!-- Global providers (only here) -->
+<MudThemeProvider Theme="Theme.Current" />
+<MudDialogProvider />
+<MudSnackbarProvider />
+<MudPopoverProvider />
+
+<MudLayout>
+
+  <!-- AppBar: home button + title + theme editor -->
+    <MudAppBar Elevation="4" Color="Color.Primary">
+        <MudIconButton Icon="@Icons.Material.Filled.Home"
+                       Color="Color.Inherit"
+                       Style="color: white; size"
+                       Size="Size.Large"
+                       OnClick="@GoHome" />
+        <MudText Typo="Typo.h5" Class="ml-2">Patty's App</MudText>
+        <MudSpacer />
+        <MudThemeManagerButton OnClick="@( _ => OpenThemeManager(true) )" />
+    </MudAppBar>
+
+  <!-- Main content -->
+  <MudMainContent>
+    <MudContainer MaxWidth="MaxWidth.Large" Class="pa-6">
+      <main>@Body</main>
+    </MudContainer>
+  </MudMainContent>
+
+</MudLayout>
+
+
+
+<!-- Live ThemeManager panel -->
+<MudThemeManager Open="_themeManagerOpen"
+                 OpenChanged="@(value => OpenThemeManager(value))"
+                 Theme="_themeManager"
+                 ThemeChanged="@(value => UpdateTheme(value))" />
+
+
+@code {
+    void GoHome() => NavigationManager.NavigateTo("/");
+    void OpenThemeManager() => _themeManagerOpen = true;
+
+    private ThemeManagerTheme _themeManager = new ThemeManagerTheme();
+    private bool _themeManagerOpen = false;
+
+    void OpenThemeManager(bool value) =>
+        _themeManagerOpen = value;
+
+    void UpdateTheme(ThemeManagerTheme value)
+    {
+        _themeManager = value;
+        StateHasChanged();
+    }
+}
