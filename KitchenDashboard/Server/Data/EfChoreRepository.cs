@@ -27,6 +27,8 @@ namespace KitchenDashboard.Server.Data
                 .ToListAsync();
         }
 
+
+
         public async Task<IEnumerable<OneOffChore>> GetTodaysOneOffAsync(DateTime date)
         {
             return await _db.OneOffChores
@@ -72,6 +74,54 @@ namespace KitchenDashboard.Server.Data
             if (chore != null)
             {
                 chore.Completed = true;
+                await _db.SaveChangesAsync();
+            }
+        }
+
+        public async Task UpdateRecurringChoreAsync(RecurringChore chore)
+        {
+            var existing = await _db.RecurringChores.FindAsync(chore.Id);
+            if (existing != null)
+            {
+                existing.Description = chore.Description;
+                existing.Monday = chore.Monday;
+                existing.Tuesday = chore.Tuesday;
+                existing.Wednesday = chore.Wednesday;
+                existing.Thursday = chore.Thursday;
+                existing.Friday = chore.Friday;
+                existing.Saturday = chore.Saturday;
+                existing.Sunday = chore.Sunday;
+                await _db.SaveChangesAsync();
+            }
+        }
+
+        public async Task DeleteRecurringChoreAsync(Guid id)
+        {
+            var chore = await _db.RecurringChores.FindAsync(id);
+            if (chore != null)
+            {
+                _db.RecurringChores.Remove(chore);
+                await _db.SaveChangesAsync();
+            }
+        }
+
+        public async Task UpdateOneOffChoreAsync(OneOffChore chore)
+        {
+            var existing = await _db.OneOffChores.FindAsync(chore.Id);
+            if (existing != null)
+            {
+                existing.Description = chore.Description;
+                existing.Date = chore.Date;
+                await _db.SaveChangesAsync();
+            }
+        }
+
+        public async Task DeleteOneOffChoreAsync(Guid id)
+        {
+            var chore = await _db.OneOffChores.FindAsync(id);
+            if (chore != null)
+            {
+                _db.OneOffChores.Remove(chore);
                 await _db.SaveChangesAsync();
             }
         }

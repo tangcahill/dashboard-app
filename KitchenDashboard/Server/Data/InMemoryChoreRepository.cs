@@ -96,5 +96,45 @@ namespace KitchenDashboard.Server.Data
             if (item != null) item.Completed = true;
             return Task.CompletedTask;
         }
+
+        public Task UpdateRecurringChoreAsync(RecurringChore chore)
+        {
+            var existing = _recurring.FirstOrDefault(c => c.Id == chore.Id);
+            if (existing != null)
+            {
+                existing.Description = chore.Description;
+                existing.Monday = chore.Monday;
+                existing.Tuesday = chore.Tuesday;
+                existing.Wednesday = chore.Wednesday;
+                existing.Thursday = chore.Thursday;
+                existing.Friday = chore.Friday;
+                existing.Saturday = chore.Saturday;
+                existing.Sunday = chore.Sunday;
+            }
+            return Task.CompletedTask;
+        }
+
+        public Task DeleteRecurringChoreAsync(Guid id)
+        {
+            _recurring.RemoveAll(c => c.Id == id);
+            return Task.CompletedTask;
+        }
+
+        public Task UpdateOneOffChoreAsync(OneOffChore chore)
+        {
+            var existing = _oneOff.FirstOrDefault(o => o.Id == chore.Id);
+            if (existing != null)
+            {
+                existing.Description = chore.Description;
+                existing.Date = chore.Date;
+            }
+            return Task.CompletedTask;
+        }
+
+        public Task DeleteOneOffChoreAsync(Guid id)
+        {
+            _oneOff.RemoveAll(o => o.Id == id);
+            return Task.CompletedTask;
+        }
     }
 }

@@ -13,5 +13,11 @@ namespace KitchenDashboard.Server.Data
         Task AddOneOffChoreAsync(OneOffChore chore);
         Task MarkRecurringCompletedAsync(Guid id, DateTime date);
         Task MarkOneOffCompletedAsync(Guid id);
+
+        Task DeleteRecurringChoreAsync(Guid id);
+        Task DeleteOneOffChoreAsync(Guid id);
+
+        Task UpdateRecurringChoreAsync(RecurringChore chore);
+        Task UpdateOneOffChoreAsync(OneOffChore chore);
     }
 }

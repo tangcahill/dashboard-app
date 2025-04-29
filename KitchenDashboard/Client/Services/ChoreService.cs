@@ -37,12 +37,14 @@ namespace KitchenDashboard.Client.Services
 
         public async Task DeleteRecurringAsync(Guid id)
         {
-            await _http.DeleteAsync($"api/chores/recurring/{id}");
+            var response = await _http.DeleteAsync($"api/chores/recurring/{id}");
+            response.EnsureSuccessStatusCode();
         }
 
         public async Task DeleteOneOffAsync(Guid id)
         {
-            await _http.DeleteAsync($"api/chores/oneoff/{id}");
+            var response = await _http.DeleteAsync($"api/chores/oneoff/{id}");
+            response.EnsureSuccessStatusCode();
         }
 
         public async Task UpdateRecurringAsync(RecurringChore chore)
@@ -50,6 +52,7 @@ namespace KitchenDashboard.Client.Services
 
         public async Task UpdateOneOffAsync(OneOffChore chore)
             => await _http.PutAsJsonAsync($"api/chores/oneoff/{chore.Id}", chore);
+
 
         private record TodayDto(IEnumerable<RecurringChore> Recurring, IEnumerable<OneOffChore> OneOff);
     }

@@ -23,6 +23,9 @@
                    OnClick="() => ShowView(ViewType.List)">
             All Chores
         </MudButton>
+    </MudStack>
+
+    <MudStack Row AlignItems="AlignItems.Center">
         <MudButton Variant="Variant.Filled"
                    FullWidth="true"
                    StartIcon="@Icons.Material.Filled.AddBox"
@@ -43,7 +46,7 @@
             <MudGrid Spacing="2">
                 @foreach (var c in RecurringChores)
                 {
-                    <MudItem xs="12" sm="6">
+                    <MudItem xs="12">
                         <MudCard Class="pa-2">
                             <MudStack Row AlignItems="AlignItems.Center" Spacing="1">
                                 <MudText Class="flex-grow-1 clickable"
@@ -62,7 +65,7 @@
                 }
                 @foreach (var o in OneOffChores)
                 {
-                    <MudItem xs="12" sm="6">
+                    <MudItem xs="12">
                         <MudCard Class="pa-2">
                             <MudStack Row AlignItems="AlignItems.Center" Spacing="1">
                                 <MudText Class="flex-grow-1 clickable"
@@ -97,8 +100,8 @@
                 @foreach (var d in Enum.GetValues<DayOfWeek>())
                 {
                     <MudCheckBox T="bool"
-                                 @bind-Checked="daySel[d]"
-                                 Label="@d.ToString()[..3]" />
+                                 @bind-Value="daySel[d]"
+                                 Label="@d.ToString().Substring(0,3)" />
                 }
             </MudStack>
             <MudButton Variant="Variant.Filled"
@@ -135,14 +138,17 @@
         <MudList T="RecurringChore" Dense="true">
             @foreach (var c in RecurringChores)
             {
-                <MudListItem T="RecurringChore" Value="c" Text="@c.Description">
-                    <MudSpacer />
-                    <MudIconButton Icon="@Icons.Material.Filled.Edit"
-                                   Color="Color.Info"
-                                   OnClick="() => UpdateRecurring(c.Id)" />
-                    <MudIconButton Icon="@Icons.Material.Filled.Delete"
-                                   Color="Color.Error"
-                                   OnClick="() => DeleteRecurring(c.Id)" />
+                <MudListItem>
+                    <MudStack Row AlignItems="AlignItems.Center" Spacing="1">
+                        <MudText>@c.Description</MudText>
+                        <MudSpacer />
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                       Color="Color.Info"
+                                       OnClick="() => UpdateRecurring(c.Id)" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                       Color="Color.Error"
+                                       OnClick="() => DeleteRecurring(c.Id)" />
+                    </MudStack>
                 </MudListItem>
             }
         </MudList>
@@ -151,14 +157,17 @@
         <MudList T="OneOffChore" Dense="true">
             @foreach (var o in OneOffChores)
             {
-                <MudListItem T="OneOffChore" Value="o" Text="@($"{o.Description} ({o.Date:dd/MM/yyyy})")">
-                    <MudSpacer />
-                    <MudIconButton Icon="@Icons.Material.Filled.Edit"
-                                   Color="Color.Info"
-                                   OnClick="() => UpdateOneOff(o.Id)" />
-                    <MudIconButton Icon="@Icons.Material.Filled.Delete"
-                                   Color="Color.Error"
-                                   OnClick="() => DeleteOneOff(o.Id)" />
+                <MudListItem>
+                    <MudStack Row AlignItems="AlignItems.Center" Spacing="1">
+                        <MudText>@($"{o.Description} ({o.Date:dd/MM/yyyy})")</MudText>
+                        <MudSpacer />
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                       Color="Color.Info"
+                                       OnClick="() => UpdateOneOff(o.Id)" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                       Color="Color.Error"
+                                       OnClick="() => DeleteOneOff(o.Id)" />
+                    </MudStack>
                 </MudListItem>
             }
         </MudList>

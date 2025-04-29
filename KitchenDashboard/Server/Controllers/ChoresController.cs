@@ -51,5 +51,39 @@ namespace KitchenDashboard.Server.Controllers
             await _repo.MarkOneOffCompletedAsync(id);
             return NoContent();
         }
+
+        // DELETE api/chores/recurring/{id}
+        [HttpDelete("recurring/{id}")]
+        public async Task<IActionResult> DeleteRecurring(Guid id)
+        {
+            await _repo.DeleteRecurringChoreAsync(id);
+            return NoContent();
+        }
+
+        // DELETE api/chores/oneoff/{id}
+        [HttpDelete("oneoff/{id}")]
+        public async Task<IActionResult> DeleteOneOff(Guid id)
+        {
+            await _repo.DeleteOneOffChoreAsync(id);
+            return NoContent();
+        }
+
+        // PUT api/chores/recurring/{id}
+        [HttpPut("recurring/{id}")]
+        public async Task<IActionResult> UpdateRecurring(Guid id, [FromBody] RecurringChore chore)
+        {
+            chore.Id = id;
+            await _repo.UpdateRecurringChoreAsync(chore);
+            return NoContent();
+        }
+
+        // PUT api/chores/oneoff/{id}
+        [HttpPut("oneoff/{id}")]
+        public async Task<IActionResult> UpdateOneOff(Guid id, [FromBody] OneOffChore chore)
+        {
+            chore.Id = id;
+            await _repo.UpdateOneOffChoreAsync(chore);
+            return NoContent();
+        }
     }
 }
