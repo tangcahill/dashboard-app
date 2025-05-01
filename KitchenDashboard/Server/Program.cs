@@ -6,17 +6,16 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowBlazorClient", policy =>
-        policy.WithOrigins("https://localhost:7079")
-              .AllowAnyHeader()
+    options.AddPolicy("AllowAll", policy =>
+        policy.AllowAnyOrigin()
               .AllowAnyMethod()
-              .AllowCredentials());
+              .AllowAnyHeader());
 });
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
-
+builder.Services.AddSingleton<AlarmSender>();
 // HTTP request/response logging
 builder.Services.AddHttpLogging(options =>
 {
@@ -29,7 +28,7 @@ builder.Services.AddDbContext<ChoresDbContext>(options =>
 
 // Use the EF-backed repository
 builder.Services.AddScoped<IChoreRepository, EfChoreRepository>();
-
+builder.WebHost.UseUrls("http://0.0.0.0:5000", "https://0.0.0.0:5001");
 var app = builder.Build();
 
 // Enable HTTP logging middleware

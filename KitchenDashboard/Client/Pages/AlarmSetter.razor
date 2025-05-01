@@ -1,20 +1,24 @@
 ﻿@page "/alarms"
-@inject HttpClient Http
 @using MudBlazor
+@inject HttpClient Http
+@inject ISnackbar Snackbar
 
 <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-6">
     <MudCard Elevation="3" Class="pa-6">
-        <MudText Typo="Typo.h5" Class="mb-4">Set a Reminder</MudText>
-        <MudForm OnValidSubmit="SetAlarm">
-            <MudStack Spacing="3">
-                <MudDatePicker @bind-Date="_selectedDate" Label="Choose date" />
-                <MudTimePicker @bind-Time="_selectedTime" Label="Choose time" />
-                <MudTextField @bind-Value="_alarm.Message" Label="Reminder text" />
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" Type="Submit">
-                    Set Alarm
-                </MudButton>
-            </MudStack>
-        </MudForm>
+        <MudText Typo="Typo.h5" Class="mb-4">Debug Alarm Setter</MudText>
+
+        <MudStack Spacing="3">
+            <MudDatePicker @bind-Date="_selectedDate" Label="Choose date" />
+            <MudTimePicker @bind-Time="_selectedTime" Label="Choose time" />
+            <MudTextField @bind-Value="_alarm.Message" Label="Reminder text" />
+
+            <MudButton ButtonType="ButtonType.Button"
+                       Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       OnClick="SetAlarm">
+                Set Alarm (Debug)
+            </MudButton>
+        </MudStack>
     </MudCard>
 </MudContainer>
 
@@ -23,18 +27,40 @@
     private DateTime? _selectedDate;
     private TimeSpan? _selectedTime;
 
-    private async Task SetAlarm()
-    {
-        if (_selectedDate.HasValue && _selectedTime.HasValue)
-        {
-            _alarm.Due = _selectedDate.Value.Date + _selectedTime.Value;
-            await Http.PostAsJsonAsync("api/alarms", _alarm);
-        }
-    }
-
     public class AlarmDto
     {
         public DateTime Due { get; set; }
         public string Message { get; set; }
+    }
+
+    private async Task SetAlarm()
+    {
+        Snackbar.Add("🔍 SetAlarm() invoked", Severity.Info);
+
+        if (!_selectedDate.HasValue || !_selectedTime.HasValue)
+        {
+            Snackbar.Add("Please pick date and time first", Severity.Warning);
+            return;
+        }
+
+        _alarm.Due = _selectedDate.Value.Date + _selectedTime.Value;
+        _alarm.Message ??= "";
+
+        try
+        {
+            var url = "/api/alarms/push";  // ONLY hit the push endpoint
+            Console.WriteLine($"📡 POST {url} → {_alarm.Due:o}, {_alarm.Message}");
+            Snackbar.Add("Calling push endpoint…", Severity.Info);
+
+            var response = await Http.PostAsJsonAsync(url, _alarm);
+            Console.WriteLine($"💬 Response: {response.StatusCode}");
+            Snackbar.Add($"Response: {response.StatusCode}",
+                         response.IsSuccessStatusCode ? Severity.Success : Severity.Error);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Exception: {ex}");
+            Snackbar.Add($"Exception: {ex.Message}", Severity.Error);
+        }
     }
 }
